@@ -5,55 +5,57 @@ import random
 import re
 import sqlite3 as sql
 import sys
+import numpy as np
+import scipy.stats as stats
 
 for term in sys.argv:
     if term == "--quiet" or term == "-q": # verbose output is on by default
         verbose = False
     else: verbose = True
+    # add more rules for evaluating terms as needed
+    # could probably be expanded to better match the options of other packages, but it seems needless
 
 def main():
-    fname = 'prey-distribution.cfg'
+    fname = 'prey-distribution.conf'
     config = read_file(fname)
-    if verbose:
-        # interactive prompt to confirm config info, prompting user to change config if info is incorrect
+    if verbose: # interactive prompt to confirm config info, prompting user to change config if info is incorrect
         print('Preparing to place %i herds of average size %i on a %ix%i field.' % (config['herd-number'], config['average-herd-size'], config['width'], config['height']))
         correct = input("Is this information correct? [Y/n]: ").lower()
         if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
             print('You can update the configuration and correct this information in prey-distribution.cfg.')
-            return # rather than sys.exit(0), because that would quit a python live environment
-        else:
-            print('\n')
+            return # return rather than sys.exit(0), because that would quit a python live environment
+        print() # adds a line break retroactively after "Is this information correct?"
     connection = sql.connect('../database.db') # this might be a bootleg way to do this. IDK anymore
     cursor = connection.cursor()
-    try: # drop table and create a new one. I tried using DELETE to clear it but it didn't work
+    try: # drop the table if it already exists
         cursor.execute("DROP TABLE prey_data")
-    except sql.OperationalError:
+    except sql.OperationalError: # triggers if the table does not already exist
         pass
-    cursor.execute("CREATE TABLE prey_data (x INTEGER, y INTEGER, herd INTEGER)") # if one doesn't already exist create it
+    cursor.execute("CREATE TABLE prey_data (x INTEGER, y INTEGER, herd_x INTEGER, herd_y integer)") # if one doesn't already exist create it
     herd_positions = {} # [(pos_x, pos_y): num_members]
     herd_variation = math.sqrt(config['average-herd-size'])
-    for i in range(config['herd-number']): # generate completely random herd positions
-        # TODO: switch random.gauss() out for my own function that accounts for lone deer and/or other stuff
-        member_number = int(random.gauss(config['average-herd-size'], herd_variation))
-        x = int(random.random() * config['width'])  # TODO: is herds overlapping going to be a big issue?
-        y = int(random.random() * config['height']) # if so I need to proof against that, but it may lend itself to bias.
-        herd_positions[(x, y)] = member_number
-        if verbose:
-            print('Herd %i to be placed at (%i, %i) with %i members' % (i+1, x, y, member_number))
-    if verbose:
-        print('\nIn total, %i prey individuals will be placed in %i herds' % (sum(herd_positions.values()), config['herd-number']))
+    for i in range(int(config['herd-number'])): # generate completely random herd positions
+        if random.random() <= config['lone-prey-chance']:
+            member_number = 1
+        else:
+            member_number = int(random.gauss(config['average-herd-size'], herd_variation))
+        herd_x = random.randint(0, config['width'])
+        herd_y = random.randint(0, config['height'])
+        herd_positions[(herd_x, herd_y)] = member_number
+        if verbose: print('Herd %i to be placed at (%i, %i) with %i members' % (i+1, herd_x, herd_y, member_number))
+    if verbose: print('\nIn total, %i prey individuals will be placed in %i herds\n' % (sum(herd_positions.values()), config['herd-number']))
     for herd_position in herd_positions.keys():
         member_number = herd_positions[herd_position]
-        print('member_number %i    herd_position %s' % (member_number, herd_position))
-        for i in range(member_number):
-            individual_position = place_individual(herd_position)
-        # TODO: almost entirely rewrite individual_position, then make it return the position of the individual
-        # cursor.execute("INSERT INTO prey_data(x, y, comfort_min, comfort_max) VALUES (?, ?, ?, ?)", ())
-
-
-    # print(herd_positions)
-    # print(herd_positions.values())
-    # print(sum(herd_positions.values()))
+        # print('member_number %i    herd_position %s' % (member_number, herd_position))
+        member_positions = place_herd_individuals(herd_position, member_number, config)
+        print(herd_position)
+        for position in member_positions:
+            x = position[0]
+            y = position[1]
+            herd_x = herd_position[0]
+            herd_y = herd_position[1]
+            cursor.execute("INSERT INTO prey_data(x, y, herd_x, herd_y) VALUES (?, ?, ?, ?)", (x, y, herd_x, herd_y)) # FIXME: this is calling at the wrong time, herd_x is always the same LAST VALUE
+        # print(cursor.execute("SELECT x, y, herd_x, herd_y FROM prey_data").fetchall())
 
 
 def read_file(fname):
@@ -62,40 +64,35 @@ def read_file(fname):
     for line in f.readlines():
         terms = re.split(':|\s', line) # split along empty space and colons
         terms_cleaned = [x for x in terms if x] # remove empty strings by keeping only terms with a value
-        try: # convert value into float only if applicable and add to dictionary with string identifier
-            int(terms_cleaned[1])
-            config[terms_cleaned[0]] = int(terms_cleaned[1]) # use dictionary syntax to add terms_cleaned key and value
+        try: # convert value into integer only if applicable and add to dictionary with string identifier
+            value = float(terms_cleaned[1])
+            config[terms_cleaned[0]] = value # use dictionary syntax to add terms_cleaned key and value
         except ValueError:
             config[terms_cleaned[0]] = terms_cleaned[1]
+        # TODO: add cross-checking of values, like I discussed with Ed 7/6. For instance, did they input both width and height?
     f.close()
     return config
 
 
-def place_individual(herd_position):
-    """
-    Place an individual prey, based on the center of its herd. Another thing I
-    don't really have the energy for at the moment, and will have to wait
-    until I'm inspired on the weekend or until Monday. No later though.
-    """
-    pass
-
-
-def altered_gaussian():
-    """
-    This is a placeholder for later. I need to create an altered version of a Gaussian,
-    but I don't have the energy to put towards it at the moment. Making approximations
-    of complex functions like this is central to the kind of Monte Carlo modeling that I
-    am doing, and I need to put a lot more work into understanding it-- on a base level as
-    well as how to do it in code.
-
-    In the future, this function will produce an integral of a gaussian, but the
-    probability of a lone animal will be based on config['lone-prey-chance'].
-    At the moment, I can't think how exactly that affects the integral.
-
-    Ed's drawings from July 1 were torn out, but I'll keep them folded in the black notebook.
-    """
-    pass
-
-
+def place_herd_individuals(herd_position, member_number, config):
+    member_positions = []
+    for member in range(member_number):
+        rotation = (random.random() * 2 * math.pi) # rotation stored in radians
+        distance = random.gauss(25, 3) # TODO: swap this out for a different distribution. possibly scipy.stats.alpha() once I figure out how to configure it
+        herd_x = herd_position[0]
+        herd_y = herd_position[1]
+        member_x = int((math.sin(rotation) * distance) + herd_x) # REVIEW: should I be using floats or ints? this does ints right now but I could change it easily enough
+        member_y = int((math.cos(rotation) * distance) + herd_y)
+        # REVIEW: does a toroidal space help with the model, or am I better off just cutting off the values?
+        if 0 > member_x or member_x > config['width']:
+            member_x = member_x % config['width'] # wrap around values if they exceed the limits of the model as defined by the user
+        if 0 > member_y or member_y > config['height']:
+            member_y = member_y % config['height']
+        # print('rotation: %s distance: %s x: %s y: %s' % (rotation, distance, member_x, member_y))
+        if verbose: print('# Individual placed at (%i, %i) belonging to herd at (%i, %i)' % (member_x, member_y, herd_x, herd_y))
+        # print('%i\t%i' % (member_x, member_y)) # bootleg way of getting this to work out of the box with gnuplot
+        member_positions.append((member_x, member_y))
+    # print(member_positions)
+    return (member_positions) # to be fed back into a dictionary or sql database
 
 main()
