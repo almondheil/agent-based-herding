@@ -11,9 +11,12 @@ import numpy as np
 import scipy.stats as stats
 import pandas as pd
 
-## ARGUMENT READING ##
-
 for term in sys.argv:
+    """
+    Read in arguments given in the command line in order to customize program.
+    Expandable to other options, including the possibility of specific file input
+    for configuration or other uses.
+    """
     if term == "--quiet" or term == "-q": # verbose output is on by default
         verbose = False
     else:
@@ -26,7 +29,7 @@ for term in sys.argv:
 
 def main():
     fname = 'prey-distribution.conf'
-    config = read_file(fname)
+    config = read_config(fname)
     if verbose: # interactive prompt to confirm config info, prompting user to change config if info is incorrect
         print('Preparing to place %i herds of average size %i on a %ix%i field.' % (config['herd-number'], config['average-herd-size'], config['width'], config['height']))
         if not accept_all:
@@ -57,7 +60,7 @@ def main():
     for herd_position in herd_positions.keys():
         member_number = herd_positions[herd_position]
         # print('member_number %i    herd_position %s' % (member_number, herd_position))
-        member_positions = place_herd_individuals(herd_position, member_number, config)
+        member_positions = place_herd(herd_position, member_number, config)
         # print(herd_position)
         for position in member_positions:
             x = position[0]
@@ -68,9 +71,17 @@ def main():
         # print(cursor.execute("SELECT x, y, herd_x, herd_y FROM prey_data").fetchall())
         sql_query = cursor.execute("SELECT x, y FROM prey_data").fetchall()
         df = pd.DataFrame(sql_query)
-        df.to_csv('out.csv', index = False, header = False)
+        df.to_csv('prey_positions.csv', index = False, header = ['x', 'y'])
 
-def read_file(fname):
+
+def read_config(fname):
+    """
+    Read a config file into the program, separating terms and their values
+    and adding them to a dictionary that can be referenced later.
+
+    In the future, read_file will also perform checks and cross-checks that values
+    are logical and point the user in the direction of any errors.
+    """
     config = {}
     f = open(fname, 'r')
     for line in f.readlines():
@@ -86,18 +97,24 @@ def read_file(fname):
     return config
 
 
-def place_herd_individuals(herd_position, member_number, config):
+def place_herd(herd_position, member_number, config):
+    """
+    Place a full herd of individuals, based around a centerpoint.
+    """
     member_positions = []
     for member in range(member_number):
         rotation = (random.random() * 2 * math.pi) # rotation stored in radians
         distance = abs(random.gauss(0, config['herd-spacing-stdev'])) # absolute value of gaussian distribution means we have everything over the mean, so 66% of members are within 1 stdev of the center.
         herd_x = herd_position[0]
         herd_y = herd_position[1]
+        # TODO: add weighting and check multiple possible points.
+        # REVIEW: will using the distribution and wieghting together bias the placement?
         member_x = int((math.sin(rotation) * distance) + herd_x) # REVIEW: should I be using floats or ints? this does ints right now but I could change it easily enough
         member_y = int((math.cos(rotation) * distance) + herd_y)
-        # REVIEW: does a toroidal space help with the model, or am I better off just cutting off the values?
+
+        # wrap around values outside the limits of the model, creating a toroidal space
         if 0 > member_x or member_x > config['width']:
-            member_x = member_x % config['width'] # wrap around values if they exceed the limits of the model as defined by the user
+            member_x = member_x % config['width']
         if 0 > member_y or member_y > config['height']:
             member_y = member_y % config['height']
         # print('rotation: %s distance: %s x: %s y: %s' % (rotation, distance, member_x, member_y))

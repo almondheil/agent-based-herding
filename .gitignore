@@ -1,4 +1,7 @@
-prey-distribution/output/*
+# EMACS
 *~
-\#*#
+\#*\#
+
+# PROJECT FILES
 database.db
+prey_distribution/output/*
