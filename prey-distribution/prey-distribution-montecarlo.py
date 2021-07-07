@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+## IMPORTS ##
+
 import math
 import random
 import re
@@ -7,24 +9,32 @@ import sqlite3 as sql
 import sys
 import numpy as np
 import scipy.stats as stats
+import pandas as pd
+
+## ARGUMENT READING ##
 
 for term in sys.argv:
     if term == "--quiet" or term == "-q": # verbose output is on by default
         verbose = False
-    else: verbose = True
-    # add more rules for evaluating terms as needed
-    # could probably be expanded to better match the options of other packages, but it seems needless
+    else:
+        verbose = True
+    if term == "--yes" or term == "-y": # accept all inputs
+        accept_all = True
+    else:
+        accept_all = False
+
 
 def main():
     fname = 'prey-distribution.conf'
     config = read_file(fname)
     if verbose: # interactive prompt to confirm config info, prompting user to change config if info is incorrect
         print('Preparing to place %i herds of average size %i on a %ix%i field.' % (config['herd-number'], config['average-herd-size'], config['width'], config['height']))
-        correct = input("Is this information correct? [Y/n]: ").lower()
-        if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
-            print('You can update the configuration and correct this information in prey-distribution.cfg.')
-            return # return rather than sys.exit(0), because that would quit a python live environment
-        print() # adds a line break retroactively after "Is this information correct?"
+        if not accept_all:
+            correct = input("Is this information correct? [Y/n]: ").lower()
+            if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
+                print('You can update the configuration and correct this information in prey-distribution.cfg.')
+                return # return rather than sys.exit(0), because that would quit a python live environment
+            print() # adds a line break retroactively after "Is this information correct?"
     connection = sql.connect('../database.db') # this might be a bootleg way to do this. IDK anymore
     cursor = connection.cursor()
     try: # drop the table if it already exists
@@ -48,7 +58,7 @@ def main():
         member_number = herd_positions[herd_position]
         # print('member_number %i    herd_position %s' % (member_number, herd_position))
         member_positions = place_herd_individuals(herd_position, member_number, config)
-        print(herd_position)
+        # print(herd_position)
         for position in member_positions:
             x = position[0]
             y = position[1]
@@ -56,7 +66,9 @@ def main():
             herd_y = herd_position[1]
             cursor.execute("INSERT INTO prey_data(x, y, herd_x, herd_y) VALUES (?, ?, ?, ?)", (x, y, herd_x, herd_y)) # FIXME: this is calling at the wrong time, herd_x is always the same LAST VALUE
         # print(cursor.execute("SELECT x, y, herd_x, herd_y FROM prey_data").fetchall())
-
+        sql_query = cursor.execute("SELECT x, y FROM prey_data").fetchall()
+        df = pd.DataFrame(sql_query)
+        df.to_csv('out.csv', index = False, header = False)
 
 def read_file(fname):
     config = {}
@@ -78,7 +90,7 @@ def place_herd_individuals(herd_position, member_number, config):
     member_positions = []
     for member in range(member_number):
         rotation = (random.random() * 2 * math.pi) # rotation stored in radians
-        distance = random.gauss(25, 3) # TODO: swap this out for a different distribution. possibly scipy.stats.alpha() once I figure out how to configure it
+        distance = abs(random.gauss(0, config['herd-spacing-stdev'])) # absolute value of gaussian distribution means we have everything over the mean, so 66% of members are within 1 stdev of the center.
         herd_x = herd_position[0]
         herd_y = herd_position[1]
         member_x = int((math.sin(rotation) * distance) + herd_x) # REVIEW: should I be using floats or ints? this does ints right now but I could change it easily enough
@@ -94,5 +106,6 @@ def place_herd_individuals(herd_position, member_number, config):
         member_positions.append((member_x, member_y))
     # print(member_positions)
     return (member_positions) # to be fed back into a dictionary or sql database
+
 
 main()
