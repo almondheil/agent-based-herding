@@ -1,8 +1,8 @@
-# EMACS
+### Emacs ###
 *~
 \#*\#
 
-# PROJECT FILES
+### Project files ###
 database.db
 prey_distribution/output/*
 obsolete/*
