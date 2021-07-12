@@ -6,3 +6,4 @@
 database.db
 prey_distribution/output/*
 obsolete/*
+__pycache__/*
