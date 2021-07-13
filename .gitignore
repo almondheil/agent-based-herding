@@ -4,6 +4,6 @@
 
 ### Project files ###
 database.db
-prey_distribution/output/*
+Output*
 obsolete/*
 __pycache__/*

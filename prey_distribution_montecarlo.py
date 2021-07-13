@@ -111,15 +111,20 @@ def read_config(fname):
     config = {}
     with open(fname, 'r') as f:
         for line in f.readlines():
+            if line[:1] == '#' or line[:1] == "\n": # ignore lines that are fully comments or are blank. cannot detect lines with ' \n' yet
+            # TODO: this only works with Unix \n newlines, as do other parts of the code. that prolly means Windows \r\n won't work
+                continue
             terms = re.split(':|\s', line) # split along empty space and colons
             terms_cleaned = [x for x in terms if x] # remove empty strings by keeping only terms with a value
+            print(terms_cleaned)
             try: # convert value into integer only if applicable and add to dictionary with string identifier
                 value = float(terms_cleaned[1])
                 config[terms_cleaned[0]] = value # use dictionary syntax to add terms_cleaned key and value
             except ValueError:
                 config[terms_cleaned[0]] = terms_cleaned[1]
             # TODO: add cross-checking of values, like I discussed with Ed 7/6. For instance, did they input both width and height?
-    return config
+    # print(config)
+    return(config)
 
 
 def place_herd(herd_position, member_number, config):
