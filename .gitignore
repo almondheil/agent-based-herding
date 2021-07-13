@@ -3,7 +3,6 @@
 \#*\#
 
 ### Project files ###
-database.db
 Output*
 obsolete/*
 __pycache__/*
