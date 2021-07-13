@@ -22,6 +22,7 @@ import math
 from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
+import prey_distribution_montecarlo as prey_place
 # from mesa.datacollection import DataCollector
 # from mesa.batchrunner import BatchRunner
 
@@ -33,8 +34,8 @@ class PreyAgent(Agent):
         super().__init__(unique_id, model)
 
     def move(self):
-        # print("Prey %s moves." % (self.unique_id))
-        possible_moves = 
+        print("Prey %s moves." % (self.unique_id))
+        
         
     def step(self):
         self.move()
@@ -46,6 +47,7 @@ class PredatorAgent(Agent):
         super().__init__(unique_id, model)
         
     def move(self):
+        """Do a random walk or move towards any prey you notice"""
         print("Predator %s moves." % (self.unique_id))
 
     def step(self):
@@ -58,7 +60,7 @@ class HerdModel(Model):
         self.num_prey = N_prey
         self.width = width
         self.height = height
-        self.space = ContinuousSpace(width, height, True)
+        self.space = ContinuousSpace(width, height, True) # create torus space with predefined width and height
         self.schedule = RandomActivation(self)
         self.make_agents()
 
@@ -69,13 +71,13 @@ class HerdModel(Model):
                 a = PredatorAgent(i, self)
                 x = self.random.randrange(self.width)
                 y = self.random.randrange(self.height)
-            else:
+            else: # TODO: feed in the locations we've tried so hard to generate, rather than doing this randomly
                 a = PreyAgent(i, self)
                 x = self.random.randrange(self.width)
                 y = self.random.randrange(self.height)
             self.schedule.add(a)
             self.space.place_agent(a, (x, y))
-            # print('%s placed at (%s, %s)' % (type(a), x, y))
+            print('%s placed at (%s, %s)' % (str(type(a))[20:-2], x, y)) # slice prints PredatorAgent or PreyAgent from class
             
 
     def step(self):
@@ -85,4 +87,4 @@ class HerdModel(Model):
 
 if __name__ == "__main__":
     main()
-hi all, I thought I would mention something about your public s/w repos on github and other places: you might want to do a bit of a curating pass at them now that you've been at them for a while.  make sure you rename (with "git mv") programs so that their  names make sense, and make sure that your README.md file is very very good
+
