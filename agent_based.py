@@ -18,13 +18,26 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
+
+## Imports ##
+# general packages
 import math
+import pandas as pd
+import sys
+
+# mesa-specific components
 from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
-import prey_distribution_montecarlo as prey_place
-# from mesa.datacollection import DataCollector
-# from mesa.batchrunner import BatchRunner
+
+# other project files 
+from prey_distribution_montecarlo import read_config
+
+
+def main():
+    config = read_config('herd_scenario.conf') # read in config, function currently lives in prey_distribution_montecarlo.py
+    # TODO: need to read in points, maybe from CSV but maybe from live session somehow
+    # it may also be helpful to read in the parameters the user does command-line like -q and -y
 
 
 class PreyAgent(Agent):
@@ -33,12 +46,19 @@ class PreyAgent(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
 
-    def move(self):
-        print("Prey %s moves." % (self.unique_id))
-        
+    def look(self):
+        visible = self.model.space.get_neighbors(self.pos, config['prey-vision'])
+        # print(len(visible))
+        for agent in visible:
+            if str(type(agent))[20:-7] == "Predator":
+                print("!! Prey %s %s sees a predator near it at %s!" % (self.unique_id, self.pos, agent.pos))
+            else:
+                # print("Prey %s %s sees another prey near it at %s" % (self.unique_id, self.pos, agent.pos))
+                pass
+            # that garble gets the name of the thing it sees in lowercase, type(agent) gives you a bunch of <module.NameHere> garbo
         
     def step(self):
-        self.move()
+        self.look()
 
 
 class PredatorAgent(Agent):
@@ -48,7 +68,8 @@ class PredatorAgent(Agent):
         
     def move(self):
         """Do a random walk or move towards any prey you notice"""
-        print("Predator %s moves." % (self.unique_id))
+        # print("Predator %s moves (but not really I haven't coded that yet)." % (self.unique_id))
+        pass
 
     def step(self):
         self.move()
@@ -62,11 +83,12 @@ class HerdModel(Model):
         self.height = height
         self.space = ContinuousSpace(width, height, True) # create torus space with predefined width and height
         self.schedule = RandomActivation(self)
+        prey_positions = pd.read_csv(pos_input)
+        print(prey_positions)
         self.make_agents()
 
-
-    def make_agents(self): # this is where I feed in the prey placement code and also add RANDOM predator placement
-        for i in range(self.num_predator + self.num_prey):
+    def make_agents(self, prey_positions): # this is where I feed in the prey placement code and also add RANDOM predator placement
+        for i in range(self.num_predator + self.num_prey): # there must be a unique ID for each agent, predator or prey
             if i < self.num_predator:
                 a = PredatorAgent(i, self)
                 x = self.random.randrange(self.width)
@@ -77,13 +99,8 @@ class HerdModel(Model):
                 y = self.random.randrange(self.height)
             self.schedule.add(a)
             self.space.place_agent(a, (x, y))
-            print('%s placed at (%s, %s)' % (str(type(a))[20:-2], x, y)) # slice prints PredatorAgent or PreyAgent from class
+            print('%s placed at (%s, %s)' % (str(type(a))[20:-7], x, y)) # slice prints PredatorAgent or PreyAgent from class
             
-
-    def step(self):
-        self.schedule.step()
-
-
 
 if __name__ == "__main__":
     main()

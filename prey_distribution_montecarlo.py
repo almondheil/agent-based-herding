@@ -44,12 +44,12 @@ for term in sys.argv:
 
 def main():
     """Set up other aspects of the program and export."""
-    fname = 'prey_distribution.conf'
+    fname = 'herd_scenario.conf'
     config = read_config(fname)
     # interactive prompt to confirm config info, prompting user to change config if info is incorrect
     if verbose:
         print('Preparing to place %i herds of average size %i on a %ix%i field.'
-              % (config['herd-number'], config['average-herd-size'], config['width'], config['height']))
+              % (config['herd-number'], config['herd-size'], config['width'], config['height']))
         if not accept_all: # just skip this section if the user specified -y
             answered = False
             while answered == False:
@@ -66,12 +66,12 @@ def main():
 
     prey_data = pd.DataFrame(columns = ['x', 'y', 'herd_x', 'herd_y'])
     herd_positions = {} # [(pos_x, pos_y): num_members]
-    herd_variation = math.sqrt(config['average-herd-size'])
+    herd_variation = math.sqrt(config['herd-size'])
     for i in range(int(config['herd-number'])): # generate completely random herd positions
-        if random.random() <= config['lone-prey-chance']:
+        if random.random() <= config['herd-lone-prey-chance']:
             member_number = 1
         else:
-            member_number = int(random.gauss(config['average-herd-size'], herd_variation))
+            member_number = int(random.gauss(config['herd-size'], herd_variation))
         herd_x = random.randint(0, config['width'])
         herd_y = random.randint(0, config['height'])
         herd_positions[(herd_x, herd_y)] = member_number
@@ -97,34 +97,10 @@ def write_output(prey_data, path_to_csv=None, csv_name=None):
         csv_out = str(csv_name) + ".csv"
     else:
         csv_out = datetime.now().strftime("Output %d-%m-%Y %H:%M:%S.csv")
-    if verbose: print("\n# Saving to '%s'" % csv_out)
+    if verbose: print("\nSaving to '%s'" % csv_out)
     prey_data.to_csv(csv_out, index=False)
 
 
-def read_config(fname):
-    """Read a config file into the program, separating terms and their values
-    and adding them to a dictionary that can be referenced later.
-
-    In the future, read_file will also perform checks and cross-checks that values
-    are logical and point the user in the direction of any errors."""
-
-    config = {}
-    with open(fname, 'r') as f:
-        for line in f.readlines():
-            if line[:1] == '#' or line[:1] == "\n": # ignore lines that are fully comments or are blank. cannot detect lines with ' \n' yet
-            # TODO: this only works with Unix \n newlines, as do other parts of the code. that prolly means Windows \r\n won't work
-                continue
-            terms = re.split(':|\s', line) # split along empty space and colons
-            terms_cleaned = [x for x in terms if x] # remove empty strings by keeping only terms with a value
-            print(terms_cleaned)
-            try: # convert value into integer only if applicable and add to dictionary with string identifier
-                value = float(terms_cleaned[1])
-                config[terms_cleaned[0]] = value # use dictionary syntax to add terms_cleaned key and value
-            except ValueError:
-                config[terms_cleaned[0]] = terms_cleaned[1]
-            # TODO: add cross-checking of values, like I discussed with Ed 7/6. For instance, did they input both width and height?
-    # print(config)
-    return(config)
 
 
 def place_herd(herd_position, member_number, config):
@@ -137,7 +113,7 @@ def place_herd(herd_position, member_number, config):
         if member_positions:
             distance_value = {}
             value_distribution = stats.norm(25, 10) # TODO: make these parameters available in config (25, 3) was old
-            for i in range(int(config['individual-placement-attempts'])):
+            for i in range(int(config['herd-placement-attempts'])):
                 (test_x, test_y) = new_random_position(herd_position, config['herd-spacing-stdev'])
                 point_value = 0
                 for other_position in member_positions:
@@ -149,8 +125,8 @@ def place_herd(herd_position, member_number, config):
             distance_value = {key:val for key, val in distance_value.items() if val != 0} # remove any values that are just zero, which trips up random.choices()
             for value in distance_value.items():
                 if value == 0:
-                    print(value)
-            member_x, member_y = random.choices(list(distance_value.keys()), list(distance_value.values()), k=1)[0] # janky but it comes out as a tuple in a list
+                    raise Exception("The value of a point was found to be zero, which should mean it was removed from the running. Please let the developer know of this error.")
+            member_x, member_y = random.choices(list(distance_value.keys()), list(distance_value.values()), k=1)[0]
             # print('x:%s\ty:%s' % (member_x, member_y))
         else: # if there aren't already entries, just place yourself at a random point point
             member_x, member_y = new_random_position(herd_position, config['herd-spacing-stdev'])
