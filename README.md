@@ -22,8 +22,8 @@ know how to recognize this error or prompt the user to correct it.
 individual to find the most valuable ones
 
 
-Once the config file is correct, run the code with `python3 prey_distribution_montecarlo.py`
-by default, the program will print the placement of each prey individual. This behavior can be
+Once the config file is correct, run the code with `python3 prey_distribution_montecarlo.py`.
+By default, the program will print the placement of each prey individual. This behavior can be
 disabled with the `-q` or `--quiet` parameter on the command line.
 
 When the program has finished running, it will output the positions of each prey member to a
@@ -34,7 +34,7 @@ to generate prey positions for the agent-based part of the project.
 
 * Agent-based movement modeling
   * Predators follow random walks
-  * Prey follow Hamiltonian selfish herd movement rules
+  * Prey run from predators as a herd
 * Batch data collection of populations
 * Checking and cross-checking of config values to ensure they make sense and do not contradict each other
 * Configuration settings for other aspects of the simulation
