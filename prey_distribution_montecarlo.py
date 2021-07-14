@@ -27,43 +27,13 @@ import sys
 import scipy.stats as stats
 
 
-for term in sys.argv:
-    """Read in arguments given in the command line in order to customize program.
-    Expandable to other options, including the possibility of specific file input
-    for configuration or other uses."""
-
-    if term == "--quiet" or term == "-q": # verbose output is on by default
-        verbose = False
-    else:
-        verbose = True
-    if term == "--yes" or term == "-y": # accept all inputs
-        accept_all = True
-    else:
-        accept_all = False
-
-
 def main():
-    """Set up other aspects of the program and export."""
-    fname = 'herd_scenario.conf'
-    config = read_config(fname)
-    # interactive prompt to confirm config info, prompting user to change config if info is incorrect
-    if verbose:
-        print('Preparing to place %i herds of average size %i on a %ix%i field.'
-              % (config['herd-number'], config['herd-size'], config['width'], config['height']))
-        if not accept_all: # just skip this section if the user specified -y
-            answered = False
-            while answered == False:
-                correct = input("Is this information correct? [Y/n]: ").lower()
-                if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
-                    print('You can update the configuration and correct this information in prey-distribution.conf.')
-                    return # return rather than sys.exit(0), because that would quit a python live environment
-                elif correct == "y" or correct == "yes" or correct == '':
-                    answered = True
-                    print() # adds a line break retroactively after "Is this information correct?"
-                    continue
-                else:
-                    continue
+    """Doesn't do anything, this just holds some useful functions for
+herd placement"""
+    print("%s does not support running standalone. \nInstead, it should be used as a part of run.py." % (sys.argv[0]))
 
+def place_herds(config, params):
+    """Place a given number of herds randomly around the canvas."""
     prey_data = pd.DataFrame(columns = ['x', 'y', 'herd_x', 'herd_y'])
     herd_positions = {} # [(pos_x, pos_y): num_members]
     herd_variation = math.sqrt(config['herd-size'])
@@ -75,35 +45,13 @@ def main():
         herd_x = random.randint(0, config['width'])
         herd_y = random.randint(0, config['height'])
         herd_positions[(herd_x, herd_y)] = member_number
-        if verbose: print('Herd %i to be placed at (%i, %i) with %i members' % (i+1, herd_x, herd_y, member_number))
-    if verbose: print('\nIn total, %i prey individuals will be placed in %i herds\n' % (sum(herd_positions.values()), config['herd-number']))
-    for herd_position in herd_positions.keys():
-        member_number = herd_positions[herd_position]
-        # print('member_number %i    herd_position %s' % (member_number, herd_position))
-        member_positions = place_herd(herd_position, member_number, config)
-        # print(herd_position)
-        herd_x = herd_position[0]
-        herd_y = herd_position[1]
-        for position in member_positions:
-            x = position[0]
-            y = position[1]
-            prey_data.loc[len(prey_data.index)] = [x, y, herd_x, herd_y]
-        # print(prey_data)
-    write_output(prey_data)
+        if params['verbose']: print('Herd %i to be placed at (%i, %i) with %i members' % (i+1, herd_x, herd_y, member_number))
+    if params['verbose']: print('\nIn total, %i prey individuals will be placed in %i herds\n' %
+                                (sum(herd_positions.values()), config['herd-number']))
+    return(herd_positions)
 
 
-def write_output(prey_data, path_to_csv=None, csv_name=None):
-    if csv_name: # output to either a specified CSV or to a file with the current time
-        csv_out = str(csv_name) + ".csv"
-    else:
-        csv_out = datetime.now().strftime("Output %d-%m-%Y %H:%M:%S.csv")
-    if verbose: print("\nSaving to '%s'" % csv_out)
-    prey_data.to_csv(csv_out, index=False)
-
-
-
-
-def place_herd(herd_position, member_number, config):
+def place_herd_members(config, params, herd_position, member_number):
     """Place a full herd of individuals, based around a centerpoint."""
     herd_x = herd_position[0]
     herd_y = herd_position[1]
@@ -136,7 +84,7 @@ def place_herd(herd_position, member_number, config):
         if 0 > member_y or member_y > config['height']:
             member_y = int(member_y % config['height'])
         # print('rotation: %s distance: %s x: %s y: %s' % (rotation, distance, member_x, member_y))
-        if verbose: print('# Individual placed at (%i, %i) belonging to herd at (%i, %i)' % (member_x, member_y, herd_x, herd_y))
+        if params['verbose']: print('# Individual placed at (%i, %i) belonging to herd at (%i, %i)' % (member_x, member_y, herd_x, herd_y))
         # print('%i\t%i' % (member_x, member_y)) # bootleg way of getting this to work out of the box with gnuplot
         member_positions.append((member_x, member_y))
     # print(member_positions)

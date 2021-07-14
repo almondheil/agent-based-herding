@@ -21,15 +21,70 @@
 from prey_distribution_montecarlo import *
 from agent_based import *
 
+import sys
+import re
+import pandas as pd
 
+params = {}
+for term in sys.argv:
+    """Read in arguments given in the command line in order to customize 
+program. Expandable to other options, including the possibility of specific 
+file input for configuration or other uses."""
+    if term == "--quiet" or term == "-q": # verbose output is on by default
+        params['verbose'] = False
+    else:
+        params['verbose'] = True
+    if term == "--yes" or term == "-y": # accept all inputs
+        params['accept_all'] = True
+    else:
+        params['accept_all'] = False
+
+        
 def main():
-    config = read_config('herd_scenario.conf')
-    prey_positions = place_herd(herd_position, member_number)
+    # interactive prompt to confirm config info, prompting user to change config if info is incorrect
+    config = read_config('herding_setup.conf')
+    if params['verbose']:
+        print('Preparing to place %i herds of average size %i on a %ix%i field.'
+              % (config['herd-number'], config['herd-size'], config['width'], config['height']))
+        if not params['accept_all']: # just skip this section if the user specified -y
+            while True: # catch unknown input and ask again
+                correct = input("Is this information correct? [Y/n]: ").lower()
+                if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
+                    print('You can update the configuration and correct this information in herding_setup.conf.')
+                    return # return rather than sys.exit(0), because that would quit a python live environment
+                elif correct == "y" or correct == "yes" or correct == '':
+                    print() # adds a line break retroactively after "Is this information correct?"
+                    break
+                else:
+                    continue
+
+    prey_data = pd.DataFrame(columns = ['x', 'y', 'herd_x', 'herd_y'])
+    herd_positions = place_herds(config, params)
+    # print(herd_positions)
+    for herd in herd_positions.items():
+        herd_position = herd[0]
+        member_number = herd[1]
+        member_positions = place_herd_members(config, params, herd_position, member_number)
+        herd_x = herd_position[0]
+        herd_y = herd_position[1]
+        for position in member_positions:
+            member_x = position[0]
+            member_y = position[1]
+            prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
+    print("All placement values have been generated. Adding agents to model")
+            
+    model = HerdModel(config, config['predator-number'], prey_data, config['width'], config['height'])
+    for i in range(10):
+        print('## STEP %s ##' % (i))
+        model.step()
+    # print(prey_data)
+        
+    # prey_positions = place_herd(herd_position, member_number)
     # generate prey positions and save them to a pd dataframe, as well as an optional CSV
     # run that dataframe into the agent_based model
     # go from there
 
-
+    
 def read_config(fname):
     """Read a config file into the program, separating terms and their values
     and adding them to a dictionary that can be referenced later.
@@ -55,5 +110,14 @@ def read_config(fname):
     return(config)
 
 
+def write_output(prey_data, path_to_csv=None, csv_name=None):
+    if csv_name: # output to either a specified CSV or to a file with the current time
+        csv_out = str(csv_name) + ".csv"
+    else:
+        csv_out = datetime.now().strftime("Output %d-%m-%Y %H:%M:%S.csv")
+    if verbose: print("\nSaving to '%s'" % csv_out)
+    prey_data.to_csv(csv_out, index=False)
+
+    
 if __name__ == "__main__":
     main()

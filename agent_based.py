@@ -30,24 +30,20 @@ from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 
-# other project files 
-from prey_distribution_montecarlo import read_config
 
-
-def main():
-    config = read_config('herd_scenario.conf') # read in config, function currently lives in prey_distribution_montecarlo.py
-    # TODO: need to read in points, maybe from CSV but maybe from live session somehow
-    # it may also be helpful to read in the parameters the user does command-line like -q and -y
+# TODO: need to read in points, maybe from CSV but maybe from live session somehow
+# it may also be helpful to read in the parameters the user does command-line like -q and -y
 
 
 class PreyAgent(Agent):
     """A prey agent who herds with other prey
     and is attacked by predators"""
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, config):
         super().__init__(unique_id, model)
+        self.config = config
 
     def look(self):
-        visible = self.model.space.get_neighbors(self.pos, config['prey-vision'])
+        visible = self.model.space.get_neighbors(self.pos, self.config['prey-vision'])
         # print(len(visible))
         for agent in visible:
             if str(type(agent))[20:-7] == "Predator":
@@ -63,8 +59,9 @@ class PreyAgent(Agent):
 
 class PredatorAgent(Agent):
     """A predator agent who attacks prey."""
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, config):
         super().__init__(unique_id, model)
+        self.config = config
         
     def move(self):
         """Do a random walk or move towards any prey you notice"""
@@ -76,30 +73,45 @@ class PredatorAgent(Agent):
 
 
 class HerdModel(Model):
-    def __init__(self, N_predator, N_prey, width, height):
+    def __init__(self, config, N_predator, prey_data, width, height):
         self.num_predator = N_predator
-        self.num_prey = N_prey
+        self.prey_data = prey_data
+        self.num_prey = len(self.prey_data)
         self.width = width
         self.height = height
+        self.config = config
+        
         self.space = ContinuousSpace(width, height, True) # create torus space with predefined width and height
         self.schedule = RandomActivation(self)
-        prey_positions = pd.read_csv(pos_input)
-        print(prey_positions)
-        self.make_agents()
+        # print("MODEL prey data %s" % (self.prey_data))
+        self.make_agents(config, self.prey_data)
 
-    def make_agents(self, prey_positions): # this is where I feed in the prey placement code and also add RANDOM predator placement
-        for i in range(self.num_predator + self.num_prey): # there must be a unique ID for each agent, predator or prey
-            if i < self.num_predator:
-                a = PredatorAgent(i, self)
-                x = self.random.randrange(self.width)
-                y = self.random.randrange(self.height)
-            else: # TODO: feed in the locations we've tried so hard to generate, rather than doing this randomly
-                a = PreyAgent(i, self)
-                x = self.random.randrange(self.width)
-                y = self.random.randrange(self.height)
+    def make_agents(self, config, prey_data): # this is where I feed in the prey placement code and also add RANDOM predator placement
+        # print(self.num_predator + self.num_prey)
+        id = 0 # least confusing way I can come up with to have unique ID for each agent regardless of predator or prey
+        for i in range(int(self.num_predator)):
+            a = PredatorAgent(id, self, config)
+            x = self.random.randrange(self.width)
+            y = self.random.randrange(self.height)
             self.schedule.add(a)
             self.space.place_agent(a, (x, y))
-            print('%s placed at (%s, %s)' % (str(type(a))[20:-7], x, y)) # slice prints PredatorAgent or PreyAgent from class
+            print('PredatorAgent placed at (%s, %s)' % (x, y)) # slice prints PredatorAgent or PreyAgent from class
+            id += 1
+        for i in range(int(self.num_prey)):
+            a = PreyAgent(id, self, config)
+            # print("LOCATION \n%s" % prey_data.loc[row])
+            # print("LENGTH %s" % (len(prey_data) -1))
+            # print("ITER %s" % i)
+            x = prey_data.loc[i][0] # locate the x and y in the prey_data DataFrame we generated already
+            y = prey_data.loc[i][1]
+            self.schedule.add(a)
+            self.space.place_agent(a, (x, y))
+            print('PreyAgent placed at (%s, %s)' % (x, y)) # slice prints PredatorAgent or PreyAgent from class
+            id += 1
+        # print(prey_data)
+
+    def step(self):
+        self.schedule.step()
             
 
 if __name__ == "__main__":
