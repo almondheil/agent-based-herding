@@ -68,11 +68,13 @@ def place_herd_members(config, params, herd_position, member_number):
                     other_x, other_y = other_position
                     distance_to_other = math.sqrt((test_x - other_x)**2 + (test_y - other_y)**2)
                     point_value += value_distribution.pdf(distance_to_other) # the weight of this term in the final selection
-                    # print('point_value %.4f for other_position %s test_position (%s, %s) and i %s' % (point_value, other_position, test_x, test_y, i))
+                    print('point_value %.4f for other_position %s test_position (%s, %s) and i %s'
+                          % (point_value, other_position, test_x, test_y, i))
             distance_value[(test_x, test_y)] = point_value
             distance_value_stripped = {key:val for key, val in distance_value.items() if val != 0} # remove any values that are just zero, which trips up random.choices()
             if distance_value_stripped: # only use choices() if there ARE any items in the stripped version, as an eptry array from the 0 removal would confuse it
                 member_x, member_y = random.choices(list(distance_value_stripped.keys()), list(distance_value_stripped.values()), k=1)[0]
+                print("choices %s" % random.choices(list(distance_value_stripped.keys()), list(distance_value_stripped.values()), k=1))
             else:
                 member_x, member_y = random.choice(list(distance_value.keys()))
             # print(list(distance_value.keys()))

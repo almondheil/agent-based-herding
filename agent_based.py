@@ -22,17 +22,12 @@
 ## Imports ##
 # general packages
 import math
-import pandas as pd
 import sys
 
 # mesa-specific components
 from mesa import Agent, Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
-
-
-# TODO: need to read in points, maybe from CSV but maybe from live session somehow
-# it may also be helpful to read in the parameters the user does command-line like -q and -y
 
 
 class PreyAgent(Agent):
@@ -64,6 +59,7 @@ class PredatorAgent(Agent):
     def __init__(self, unique_id, model, config, params):
         super().__init__(unique_id, model)
         self.config = config
+        self.params = params
         self.run_speed = self.config['predator-run-speed']
         self.idle_speed = self.config['predator-idle-speed']
         self.stamina = self.config['predator-stamina']
@@ -72,10 +68,17 @@ class PredatorAgent(Agent):
 
     def look(self):
         neighbors = self.model.space.get_neighbors(self.pos, self.vision)
+        prey_visible = []
         for neighbor in neighbors:
             if str(type(neighbor))[20:-2] == "PreyAgent": # complicated way of getting a clean value for Prey
-                print("!! Predator %s (%.2f, %.2f) sees a prey near it at %s" % (self.unique_id, self.pos[0], self.pos[1], neighbor.pos))
-            
+                if self.params['verbose']: print("Predator %s (%.2f, %.2f) sees a prey near it %s"
+                                                 % (self.unique_id, self.pos[0], self.pos[1], neighbor.pos))
+                prey_visible.append(neighbor)
+                # print(prey_visible)
+        if prey_visible:
+            target = self.model.random.choice(prey_visible)
+            self.chase_prey(target)
+                # where do I go from here? I wanna random.choice() from any that are visible at the end of a look()
         
     def move_idle(self):
         """Do a random walk or move towards any prey you notice"""
@@ -87,10 +90,31 @@ class PredatorAgent(Agent):
             new_x = current_x + (math.sin(rotation) * (distance/10))
             new_y = current_y + (math.cos(rotation) * (distance/10))
             new_pos = (new_x, new_y)
-            print("## Predator %s moving to (%.2f, %.2f)" % (self.unique_id, new_x, new_y))
+            if self.params['verbose']: print('Predator %s moving to (%.2f, %.2f) (step %s)' % (self.unique_id, new_x, new_y, step))
             self.model.space.move_agent(self, new_pos)
             self.look()
+
+    def chase_prey(self, target):
+        """After noticing a prey, chase it down. Possible outcomes include: 
+            Catch up, secure kill; 
+            Catch up, miss kill; 
+            Don't catch up :(
+
+        One issue I'm having is that it can randomly chase a different prey if it feels like it, so I may need to
+        have a check against that
         
+        Difference between prey initiated chase and predaotr initiated is that prey gets a full 
+        (or maybe percentage) movement before alerting predator"""
+        if self.params['verbose']: print("## Predator %s is chasing prey %s" % (self.unique_id, target.unique_id))
+        """distance_to_target = 
+        if distance_to_target <= self.run_speed:
+            new_x, new_y = target.pos
+        else:
+            new
+        new_pos = (new_x, new_y)"""
+        # if self.params['verbose']: print('Predator %s moves to (%.2f, %.2f) in pursuit of prey %s'
+                                         # % (self.unique_id, self.new_x, self.new_y, target.unique_id))
+            
         # print(self.idle_speed)
         # print((rotation, distance))
 

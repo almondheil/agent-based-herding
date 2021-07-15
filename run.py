@@ -71,18 +71,17 @@ def main():
             member_x = position[0]
             member_y = position[1]
             prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
-    print("All placement values have been generated. Adding agents to model")
-            
+    # print("All placement values have been generated. Adding agents to model") # FIXME: I only want this on verbose but IDK where to get
     model = HerdModel(params, config, prey_data)
-    while True:
+    for i in range(10):
         model.step()
-        wait = input("Continue..? ") # just freezes everything until user input
     # print(prey_data)
         
     # prey_positions = place_herd(herd_position, member_number)
     # generate prey positions and save them to a pd dataframe, as well as an optional CSV
     # run that dataframe into the agent_based model
     # go from there
+    #### MORNING: check if predators are chaing the correct number of prey and stuff
 
     
 def read_config(fname):
