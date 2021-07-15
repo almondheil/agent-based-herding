@@ -18,8 +18,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
-from prey_distribution_montecarlo import *
-from agent_based import *
+from prey_distribution.prey_distribution_montecarlo import *
+from agent_based.agent_based import *
 
 import sys
 import re
