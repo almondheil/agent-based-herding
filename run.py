@@ -20,6 +20,7 @@
 
 from prey_distribution.prey_distribution_montecarlo import *
 from agent_based.agent_based import *
+from agent_based.server import server
 
 import sys
 import re
@@ -28,7 +29,7 @@ import pandas as pd
 params = {}
 for term in sys.argv:
     """Read in arguments given in the command line in order to customize 
-program. Expandable to other options, including the possibility of specific 
+`program. Expandable to other options, including the possibility of specific 
 file input for configuration or other uses."""
     if term == "--quiet" or term == "-q": # verbose output is on by default
         params['verbose'] = False
