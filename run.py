@@ -73,10 +73,10 @@ def main():
             prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
     print("All placement values have been generated. Adding agents to model")
             
-    model = HerdModel(config, config['predator-number'], prey_data, config['width'], config['height'])
-    for i in range(10):
-        print('## STEP %s ##' % (i))
+    model = HerdModel(params, config, prey_data)
+    while True:
         model.step()
+        wait = input("Continue..? ") # just freezes everything until user input
     # print(prey_data)
         
     # prey_positions = place_herd(herd_position, member_number)
