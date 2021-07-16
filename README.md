@@ -5,7 +5,9 @@ Computing in Research. Licensed under the GNU General Public License
 ## Installation and running (reproducing my error) 
 To start off, simply clone the github repository with
 
-```git clone https://github.com/raymondheil/agent-based-herding.git```
+```
+git clone https://github.com/raymondheil/agent-based-herding.git
+```
 
 Then, cd into the cloned repository and attempt to run the main
 file:
@@ -29,10 +31,12 @@ When I ran this code again with `python3 run.py`, I got this error
 instead. It seems more directly to be connected to my problem, but I
 didn't want to push it already in case I'm assuming incorretly.
 
-```ImportError: cannot import name 'server' from partially
+```
+ImportError: cannot import name 'server' from partially
 initialized module 'agent_based.server' (most likely due to a
 circular import) (/home/ray/Nextcloud/agent-based-herding/
-agent_based/server.py)```
+agent_based/server.py)
+```
 
 ## The rest of the README
 ### (the formatting of which was rudely interrupted by my ugly error)
