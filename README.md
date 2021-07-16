@@ -2,8 +2,8 @@
 Computing in Research. Licensed under the GNU General Public License
 3.0.
 
-## Installation and running (reproducing my error) To start off,
-simply clone the github repository with
+## Installation and running (reproducing my error) 
+To start off, simply clone the github repository with
 
 ```git clone https://github.com/raymondheil/agent-based-herding.git```
 
