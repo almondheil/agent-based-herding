@@ -16,8 +16,8 @@ limitations under the License.
 
 from mesa.visualization.ModularVisualization import ModularServer
 
-from agent_based import HerdModel
-from SimpleContinuousModule import SimpleCanvas
+from .agent_based import HerdModel
+from .SimpleContinuousModule import SimpleCanvas
 # I need to import run.read_config but it sucks the most ever to exist
 from run import read_config
 '''

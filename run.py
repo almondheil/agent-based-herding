@@ -42,19 +42,23 @@ file input for configuration or other uses."""
 
         
 def main():
-    # interactive prompt to confirm config info, prompting user to change config if info is incorrect
+    # interactive prompt to confirm config info, prompting user to
+    # change config if info is lincorrect
     config = read_config('herding_setup.conf')
     if params['verbose']:
         print('Preparing to place %i herds of average size %i on a %ix%i field.'
               % (config['herd-number'], config['herd-size'], config['width'], config['height']))
-        if not params['accept_all']: # just skip this section if the user specified -y
+        if not params['accept_all']: # just skip this section if the
+                                     # user specified -y
             while True: # catch unknown input and ask again
                 correct = input("Is this information correct? [Y/n]: ").lower()
                 if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
                     print('You can update the configuration and correct this information in herding_setup.conf.')
-                    return # return rather than sys.exit(0), because that would quit a python live environment
+                    return # return rather than sys.exit(0), because
+                           # that would quit a python live environment
                 elif correct == "y" or correct == "yes" or correct == '':
-                    print() # adds a line break retroactively after "Is this information correct?"
+                    print() # adds a line break retroactively after
+                            # "Is this information correct?"
                     break
                 else:
                     continue
@@ -72,46 +76,55 @@ def main():
             member_x = position[0]
             member_y = position[1]
             prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
-    # print("All placement values have been generated. Adding agents to model") # FIXME: I only want this on verbose but IDK where to get
+    # print("All placement values have been generated. Adding agents to model")
+    # FIXME: I only want this on verbose but IDK how
     model = HerdModel(params, config, prey_data)
     for i in range(10):
         model.step()
     # print(prey_data)
         
     # prey_positions = place_herd(herd_position, member_number)
-    # generate prey positions and save them to a pd dataframe, as well as an optional CSV
-    # run that dataframe into the agent_based model
-    # go from there
-    #### MORNING: check if predators are chaing the correct number of prey and stuff
+    # TODO: check if predators are chaing the correct number of prey
 
     
 def read_config(fname):
     """Read a config file into the program, separating terms and their values
     and adding them to a dictionary that can be referenced later.
 
-    In the future, read_file will also perform checks and cross-checks that values
-    are logical and point the user in the direction of any errors."""
+    In the future, read_file will also perform checks and cross-checks that 
+    values are logical and point the user in the direction of any errors."""
     config = {}
     with open(fname, 'r') as f:
         for line in f.readlines():
-            if line[:1] == '#' or line[:1] == "\n": # ignore lines that are fully comments or are blank. cannot detect lines with ' \n' yet
-            # TODO: this only works with Unix \n newlines, as do other parts of the code. that prolly means Windows \r\n won't work
+            # ignore lines that are fully comments or are
+            # blank. cannot detect lines with ' \n' yet
+            if line[:1] == '#' or line[:1] == "\n":
+            # TODO: this only works with Unix \n newlines, as do other
+            # parts of the code. that prolly means Windows \r\n won't
+            # work
                 continue
-            terms = re.split(':|\s', line) # split along empty space and colons
-            terms_cleaned = [x for x in terms if x] # remove empty strings by keeping only terms with a value
+            terms = re.split(':|\s', line) # split along empty space
+                                           # and colons
+            # remove empty strings by keeping only terms with a value
+            terms_cleaned = [x for x in terms if x]
             # print(terms_cleaned)
-            try: # convert value into integer only if applicable and add to dictionary with string identifier
+            try: # convert value into integer only if applicable and
+                 # add to dictionary with string identifier
                 value = float(terms_cleaned[1])
-                config[terms_cleaned[0]] = value # use dictionary syntax to add terms_cleaned key and value
+                # use dictionary syntax to add terms_cleaned key & value
+                config[terms_cleaned[0]] = value 
             except ValueError:
                 config[terms_cleaned[0]] = terms_cleaned[1]
-            # TODO: add cross-checking of values, like I discussed with Ed 7/6. For instance, did they input both width and height?
-    # print(config)
+            # TODO: add cross-checking of values, like I discussed
+            # with Ed 7/6. For instance, did they input both
+            # width and height?
+            # print(config)
     return(config)
 
 
 def write_output(prey_data, path_to_csv=None, csv_name=None):
-    if csv_name: # output to either a specified CSV or to a file with the current time
+    if csv_name: # output to either a specified CSV or to a file with
+                 # the current time
         csv_out = str(csv_name) + ".csv"
     else:
         csv_out = datetime.now().strftime("Output %d-%m-%Y %H:%M:%S.csv")
