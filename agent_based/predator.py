@@ -22,7 +22,9 @@ class PredatorAgent(Agent):
         self.vision = self.random.gauss(
             self.config['predator-vision'],
             math.sqrt(self.config['predator-vision']))
-        self.desired_heading = None
+        # desired_heading placeholder that will later be reset
+        self.desired_heading = {"rotation": 0,
+                                "steps": 0}
         # print("predvis %s: %s" % (self.unique_id, self.vision))
 
     def look(self):
@@ -30,8 +32,6 @@ class PredatorAgent(Agent):
         prey_visible = []
         for neighbor in neighbors:
             if str(type(neighbor))[-11:-2] == "PreyAgent":
-                # I tried using a slice of the string to get "PreyAgent"
-                # but it broke, it's not that ugly anway
                 prey_visible.append(neighbor)
                 if self.params['verbose']:
                     print("see: predator %s (%.2f, %.2f) sees prey at %s"
@@ -55,32 +55,20 @@ class PredatorAgent(Agent):
     def move_idle(self):
         """Do a random walk or initiate a chase after
         any prey you notice"""
+        if self.desired_heading["steps"] == 0:
+            rotation = self.random.random() * 2 * math.pi
+            steps_away = self.random.randint(0, 15)
+            # TODO: make 0, 15 configurable with pred_min_steps
+            # and pred_max_steps
+            self.desired_heading = {"rotation": rotation,
+                                    "steps": steps_away}
+        # then do everything you need to
+        current_x, current_y = self.pos
+        new_x = current_x + (math.cos(self.desired_heading["rotation"]) * self.idle_speed)
+        new_y = current_y + (math.sin(self.desired_heading["rotation"]) * self.idle_speed)
+        self.pos = (new_x, new_y)
+        self.desired_heading["steps"] -= 1
         # print("Predator %s moves" % (self.unique_id))
-        if self.desired_heading:
-            if self.pos == self.desired_heading:
-                # Find a new spot to go and start moving
-                self.find_desired_heading()
-                self.move_idle()
-            else:
-                # Move a small amount towards your goal spot
-                pass
-        else:
-            # First time moving, find a spot and move towards it
-            self.find_desired_heading()
-            self.move_idle()
-            
-        # max() function necessary to make sure we don't go below 0.
-        # could come up other places too, but it's much less likely
-        for step in range(int(distance * 10)):
-            current_x, current_y = self.pos
-            new_x = current_x + (math.sin(rotation) * (distance/10))
-            new_y = current_y + (math.cos(rotation) * (distance/10))
-            new_pos = (new_x, new_y)
-            if self.params['verbose']:
-                print('move: Predator %s moving to (%.2f, %.2f) (step %s)'
-                      % (self.unique_id, new_x, new_y, step))
-            self.model.space.move_agent(self, new_pos)
-            self.look()
 
     def chase_prey(self, target):
         """After noticing a prey, chase it down. 
@@ -124,14 +112,7 @@ class PredatorAgent(Agent):
             print("attack: Predator %s (%.2f, %.2f) attacks prey at (%.2f, %.2f)"
                   % (self.unique_id, self.pos[0], self.pos[1],
                      target.pos[0], target.pos[1]))
-
-    def find_desired_heading(self):
-        rotation = self.random.random() * 2 * math.pi
-        steps_away = self.random.randint(0, 15)
-        self.desired_heading = {"rotation": rotation,
-                                # can we decrment steps each turn?
-                                "steps": steps_away}
-        
+       
     def step(self):
         self.move_idle()
         self.look()

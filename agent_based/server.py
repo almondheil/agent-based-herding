@@ -22,13 +22,14 @@ from agent_based.SimpleContinuousModule import SimpleCanvas
 def draw_agent(agent):
     # print("AGENT TYPE PLEASE NOTICE ME %s -> %s" % (str(type(agent)), str(type(agent))[-11:-2]))
     portrayal = {"Shape": "circle",
-                 "r": 2,
+                 "r": 1.5,
                  "Filled": "true",
                  "Color": "red"}
     if str(type(agent))[-11:-2] == "PreyAgent":
-        portrayal["Color"] = "blue"
+        portrayal["Color"] = "MidnightBlue"
     else:
-        portrayal["Color"] = "red"
+        portrayal["Color"] = "MediumVioletRed"
+        portrayal["r"] = 2
     return portrayal
 
 herd_canvas = SimpleCanvas(draw_agent, 500, 500)
