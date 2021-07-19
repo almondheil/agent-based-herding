@@ -67,6 +67,7 @@ class PredatorAgent(Agent):
             math.sqrt(self.config['predator-idle-speed']))
         self.stamina = self.random.gauss(
             self.config['predator-stamina'],
+
             math.sqrt(self.config['predator-stamina']))
         self.kill_radius = self.random.gauss(
             self.config['predator-kill-radius'],
@@ -194,6 +195,7 @@ class HerdModel(Model):
         self.schedule = RandomActivation(self)
         # print("MODEL prey data %s" % (self.prey_data))
         self.make_agents(self.config, self.params, self.prey_data)
+        self.running = True
 
     def make_agents(self, config, params, prey_data):
         # print(self.num_predator + self.num_prey)
@@ -227,7 +229,6 @@ class HerdModel(Model):
 
     def step(self):
         self.schedule.step()
-            
 
 if __name__ == "__main__":
     main()

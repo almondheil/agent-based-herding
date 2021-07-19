@@ -82,9 +82,7 @@ def main():
             prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
     if params['verbose']:
         print("All placement values have been generated. Adding agents to model")
-    model = HerdModel(params, config, prey_data)
-    total_agents = model.count_agents()
-    server.launch_server(model)
+    server.launch_server(params, config, prey_data)
     # TODO: check if predators are chasing the correct number of prey
 
     

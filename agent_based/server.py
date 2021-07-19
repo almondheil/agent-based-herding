@@ -16,9 +16,11 @@ limitations under the License.
 
 from mesa.visualization.ModularVisualization import ModularServer
 
-from agent_based.herd_model import HerdModel # AHA! paths are relative to top-level run.py
+from agent_based.herd_model import HerdModel
 from agent_based.SimpleContinuousModule import SimpleCanvas
-
+# from run import read_config
+# A-HA! paths are relative to top-level run.py, which is
+# why . was necessary without agent_based as part of it
 
 def agent_portayal(agent):
     portrayal = {"Shape": "circle",
@@ -34,15 +36,31 @@ def agent_portayal(agent):
 
 herd_canvas = SimpleCanvas(agent_portayal, 500, 500)
 
-def launch_server(model): #  server.launch_server(model, config, total_agents)
-    model_params = {"num_prey": model.num_prey,
-                    "num_predator": model.num_predator,
-                    "width": model.space.width,   # what exactly does model_params get used for?
-                    "height": model.space.height} # OMG might be it: self.model = self.model_cls(**model_params)
+"""
+model_params = read_config('herding_setup.conf')
+# model_params should be three dicts: params, config, prey_data.
+# how do we get these in there? I think it makes the most sense from
+# run.py, but I had some issues with that (commented out)
+
+server = ModularServer(HerdModel,
+                       [herd_canvas],
+                       "Herding Model",
+                       model_params)
+"""
+
+def launch_server(params, config, prey_data): #  server.launch_server(model, config, total_agents)
+    #model = HerdModel(params, config, prey_data)
+    model_params = {"params": params,
+                    "config": config,
+                    "prey_data": prey_data}
+    # what exactly does model_params get used for?
     
-    server = ModularServer(HerdModel, # this does not work. why though?
+    server = ModularServer(HerdModel,
                            [herd_canvas],
                            "Herding Model",
                            model_params)
     server.launch()
 
+# then how do we get model_params in without a function call?
+# and why wouldn't server = ModularServer() work in a function?
+    
