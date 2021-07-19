@@ -4,7 +4,14 @@ in Research. Licensed under the GNU General Public License
 3.0.
 
 ## Installation and running
-To start off, simply clone the github repository with
+Before you start, make sure you have all the required Python 
+packages installed with pip:
+
+```
+pip install mesa pandas scipy
+```
+
+Then, simply clone the github repository with
 
 ```
 git clone https://github.com/raymondheil/agent-based-herding.git
@@ -18,39 +25,9 @@ cd agent-based-herding
 ```
 python3 run.py
 ```
-Currently, this throws an error after a few seconds of running. See
-below for more info.
-
-## ModularVisualization error
-
-With run.py, the program currently throws an error while trying to
-place the agents in the agent-based model. Here's the traceback I got,
-and what I'm under the impression of for its meaning.
-
-```
-Traceback (most recent call last):
-  File "/home/ray/Nextcloud/agent-based-herding/run.py", line 141, in <module>
-    main()
-  File "/home/ray/Nextcloud/agent-based-herding/run.py", line 87, in main
-    server.launch_server(model)
-  File "/home/ray/Nextcloud/agent-based-herding/agent_based/server.py", line 43, in launch_server
-    server = ModularServer(HerdModel, # this does not work. why though?
-  File "/home/ray/.local/lib/python3.9/site-packages/mesa/visualization/ModularVisualization.py", line 286, in __init__
-    self.reset_model()
-  File "/home/ray/.local/lib/python3.9/site-packages/mesa/visualization/ModularVisualization.py", line 314, in reset_model
-    self.model = self.model_cls(**model_params)
-TypeError: __init__() got an unexpected keyword argument 'num_prey'
-```
-
-The argument num_prey is the first parameter I'm trying to pass into
-this visualization of the model. In all the tutorials and examples
-I've been able to follow there is only one population of agents,
-rahter than the two populations of predators and prey that I have.  In
-those examples, I also noticed that the parameters they passed into
-ModularVisualization had the same names as when they defined the
-model. This might mean that I need to pass in all the properties my
-model has, so I'll try this as well and update my GitHub if it
-magically works.
+This will open a Tornado web server where you can control the model 
+with the "Start/Stop," "Step," and "Reset" buttons at the top of 
+the page.
 
 ## Configuration settings
 
