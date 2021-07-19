@@ -28,9 +28,11 @@ import scipy.stats as stats
 
 
 def main():
-    """Doesn't do anything, this just holds some useful functions for
+    """Doesn't do anything, this file just holds some useful functions for
 herd placement"""
-    print("%s does not support running standalone. \nInstead, it should be used as a part of run.py." % (sys.argv[0]))
+    print("%s does not support running standalone. Instead, it should be used as a part of run.py"
+          % (sys.argv[0]))
+    return
 
 def place_herds(config, params):
     """Place a given number of herds randomly around the canvas."""

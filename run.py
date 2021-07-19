@@ -36,13 +36,12 @@ file input for configuration or other uses."""
         params['verbose'] = False
     else:
         params['verbose'] = True
-    if term == "--interactive" or term == "-i": # TODO: add stopping points
-                                                # at other parts of the
-                                                # process if -i is True
+    if term == "--interactive" or term == "-i":
+        # TODO: add stopping points at other parts of the  process if -i is True
+        # also in this case I need to 
         params['interactive'] = True
     else:
         params['interactive'] = False
-
         
 def main():
     # interactive prompt to confirm config info, prompting user to
