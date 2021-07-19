@@ -16,35 +16,33 @@ limitations under the License.
 
 from mesa.visualization.ModularVisualization import ModularServer
 
-from .agent_based import HerdModel
-from .SimpleContinuousModule import SimpleCanvas
-# I need to import run.read_config but it sucks the most ever to exist
-from run import read_config
-'''
-Current problem diagram for later--I can't deal with this right now
+from agent_based.herd_model import HerdModel # AHA! paths are relative to top-level run.py
+from agent_based.SimpleContinuousModule import SimpleCanvas
 
-Code
-  agent_based
-    agent_based.py
-    server.py ** import into here
-    simple_continuous_canvas.js
-    SimpleContinuousModule.py
-  prey_distribution
-    prey_distribution_montecarlo.py
-    some output files
-  run.py ** import from here. 
-            this IS the top-level file, but it 
-            tells me I'm importing from above it.
-  README.md
-  LICENSE
-  herding_setup.conf 
-'''
 
-def draw_agent(agent, color):
-    return {"Shape": "circle", "r": 2, "Filled": "true", "Color": color}
+def agent_portayal(agent):
+    portrayal = {"Shape": "circle",
+                 "Color": "red",
+                 "Filled": "true",
+                 "Layer": 0,
+                 "r": 2}
+    if str(type(agent))[-15:-2] == "PreyAgent":
+        portrayal["Color"] = "green"
+    else:
+        portrayal["Color"] = "red"
+    return portrayal
 
-herd_canvas = SimpleCanvas(draw_agent, 500, 500)
+herd_canvas = SimpleCanvas(agent_portayal, 500, 500)
 
-model_params = read_config('herding_setup.conf')
+def launch_server(model): #  server.launch_server(model, config, total_agents)
+    model_params = {"num_prey": model.num_prey,
+                    "num_predator": model.num_predator,
+                    "width": model.space.width,   # what exactly does model_params get used for?
+                    "height": model.space.height} # OMG might be it: self.model = self.model_cls(**model_params)
+    
+    server = ModularServer(HerdModel, # this does not work. why though?
+                           [herd_canvas],
+                           "Herding Model",
+                           model_params)
+    server.launch()
 
-server = ModularServer(HerdModel, [herd_canvas], "Herds", model_params)

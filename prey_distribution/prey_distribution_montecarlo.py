@@ -60,7 +60,7 @@ def place_herd_members(config, params, herd_position, member_number):
         # REVIEW: will using the distribution and wieghting together bias the placement at all? how?
         if member_positions:
             distance_value = {}
-            value_distribution = stats.norm(25, 10) # TODO: make these parameters available in config (25, 3) was old
+            value_distribution = stats.norm(config['herd-preferred-spacing'], math.sqrt(config['herd-preferred-spacing']))
             for i in range(int(config['herd-placement-attempts'])):
                 (test_x, test_y) = new_random_position(herd_position, config['herd-spacing-stdev'])
                 point_value = 0

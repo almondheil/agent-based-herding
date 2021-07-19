@@ -2,9 +2,10 @@
 *~
 \#*\#
 
+### Python ###
+**/__pycache__/
+
 ### Project files ###
 Output*
-obsolete/*
-*/__pycache__/*
-__pycache__/*
+obsolete/
 *.tmp

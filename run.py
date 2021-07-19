@@ -19,8 +19,9 @@
 '''
 
 from prey_distribution.prey_distribution_montecarlo import *
-from agent_based.agent_based import *
-from agent_based.server import server
+from agent_based.herd_model import *
+import agent_based.server as server
+# from agent_based.server import server
 
 import sys
 import re
@@ -35,10 +36,12 @@ file input for configuration or other uses."""
         params['verbose'] = False
     else:
         params['verbose'] = True
-    if term == "--yes" or term == "-y": # accept all inputs
-        params['accept_all'] = True
+    if term == "--interactive" or term == "-i": # TODO: add stopping points
+                                                # at other parts of the
+                                                # process if -i is True
+        params['interactive'] = True
     else:
-        params['accept_all'] = False
+        params['interactive'] = False
 
         
 def main():
@@ -46,10 +49,11 @@ def main():
     # change config if info is lincorrect
     config = read_config('herding_setup.conf')
     if params['verbose']:
-        print('Preparing to place %i herds of average size %i on a %ix%i field.'
-              % (config['herd-number'], config['herd-size'], config['width'], config['height']))
-        if not params['accept_all']: # just skip this section if the
-                                     # user specified -y
+        print('Placing %i herds of average size %i on a %ix%i field.'
+              % (config['herd-number'], config['herd-size'],
+                 config['width'], config['height']))
+        if params['interactive']: # just skip this section if the
+                                  # user specified -y
             while True: # catch unknown input and ask again
                 correct = input("Is this information correct? [Y/n]: ").lower()
                 if correct == "n" or correct == "no": # abort if user answered n or no, continue otherwise
@@ -76,23 +80,22 @@ def main():
             member_x = position[0]
             member_y = position[1]
             prey_data.loc[len(prey_data.index)] = [member_x, member_y, herd_x, herd_y]
-    # print("All placement values have been generated. Adding agents to model")
-    # FIXME: I only want this on verbose but IDK how
+    if params['verbose']:
+        print("All placement values have been generated. Adding agents to model")
     model = HerdModel(params, config, prey_data)
-    for i in range(10):
-        model.step()
-    # print(prey_data)
-        
-    # prey_positions = place_herd(herd_position, member_number)
-    # TODO: check if predators are chaing the correct number of prey
+    total_agents = model.count_agents()
+    server.launch_server(model)
+    # TODO: check if predators are chasing the correct number of prey
 
     
 def read_config(fname):
-    """Read a config file into the program, separating terms and their values
-    and adding them to a dictionary that can be referenced later.
+    """Read a config file into the program, separating terms and their
+    values and adding them to a dictionary that can be referenced
+    later.
 
-    In the future, read_file will also perform checks and cross-checks that 
-    values are logical and point the user in the direction of any errors."""
+    In the future, read_file will also perform checks and cross-checks
+    that values are logical and point the user in the direction of any
+    errors."""
     config = {}
     with open(fname, 'r') as f:
         for line in f.readlines():
@@ -118,6 +121,7 @@ def read_config(fname):
             # TODO: add cross-checking of values, like I discussed
             # with Ed 7/6. For instance, did they input both
             # width and height?
+
             # print(config)
     return(config)
 
@@ -131,6 +135,7 @@ def write_output(prey_data, path_to_csv=None, csv_name=None):
     if verbose: print("\nSaving to '%s'" % csv_out)
     prey_data.to_csv(csv_out, index=False)
 
-    
+
+
 if __name__ == "__main__":
     main()
