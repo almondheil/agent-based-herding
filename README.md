@@ -17,17 +17,15 @@ Then, simply clone the github repository with
 git clone https://github.com/raymondheil/agent-based-herding.git
 ```
 
-Then, cd into the cloned repository and attempt to run the main
+Finally, cd into the cloned repository and attempt to run the main
 file:
+
 ```
-cd agent-based-herding
+cd agent-based-herding && python3 run.py
 ```
-```
-python3 run.py
-```
-This will open a Tornado web server where you can control the model 
-with the "Start/Stop," "Step," and "Reset" buttons at the top of 
-the page.
+
+After a little while, this will open a Tornado web server where
+you can control the model with the buttons at the top of the page.
 
 ## Configuration settings
 
@@ -42,7 +40,7 @@ issues later on. If they come from `run.read_config`, you likely
 encountered one. Descriptions of the config settings are visible
 below, but may be moved elsewhere in a future update.
 
-## So what do all those variables mean?
+### So what do all those variables mean?
 Environmental
 * `width` and `height`: Dimensions of the field the agents are in
 
