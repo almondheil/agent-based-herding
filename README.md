@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 # agent-based-herding
 Ray Heil's project for the 2021 Institute for Computing in
 Research. Licensed under the GNU General Public License 3.0.
+=======
+# agent-based-herding 
+Ray Heil's project for the 2021 Institute for Computing 
+in Research. Licensed under the GNU General Public License
+3.0.
+>>>>>>> 1f953a5d68dd3f1b3996cd57a5ee70c067e638e3
 
 ## Installation and running
 To start off, simply clone the github repository with
@@ -41,6 +48,7 @@ Traceback (most recent call last):
 TypeError: __init__() got an unexpected keyword argument 'num_prey'
 ```
 
+<<<<<<< HEAD
 The argument num_prey is the first parameter I'm trying to pass into
 this visualization of the model. In all the tutorials and examples
 I've been able to follow there is only one population of agents,
@@ -50,6 +58,18 @@ ModularVisualization had the same names as when they defined the
 model. This might mean that I need to pass in all the properties my
 model has, so I'll try this as well and update my GitHub if it
 magically works.
+=======
+When I ran this code again with `python3 run.py`, I got this error
+instead. It seems more directly to be connected to my problem, but I
+didn't want to push it already in case I'm assuming incorretly.
+
+```
+ImportError: cannot import name 'server' from partially
+initialized module 'agent_based.server' (most likely due to a
+circular import) (/home/ray/Nextcloud/agent-based-herding/
+agent_based/server.py)
+```
+>>>>>>> 1f953a5d68dd3f1b3996cd57a5ee70c067e638e3
 
 ## Configuration settings
 
