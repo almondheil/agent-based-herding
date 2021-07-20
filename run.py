@@ -106,7 +106,11 @@ def read_config(fname):
             terms = re.split(':|\s', line) # split along empty space
                                            # and colons
             # remove empty strings by keeping only terms with a value
-            terms_cleaned = [x for x in terms if x]
+            terms_cleaned = [] # [x for x in terms if x]
+            for term in terms:
+                if term:
+                    terms_cleaned.append(term)
+                
             # print(terms_cleaned)
             try: # convert value into integer only if applicable and
                  # add to dictionary with string identifier

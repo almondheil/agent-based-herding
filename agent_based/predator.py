@@ -16,6 +16,8 @@ class PredatorAgent(Agent):
         self.stamina = self.random.gauss(
             self.config['predator-stamina'],
             math.sqrt(self.config['predator-stamina']))
+        self.current_stamina = self.stamina
+        self.wait_timer = 0
         self.kill_radius = self.random.gauss(
             self.config['predator-kill-radius'],
             math.sqrt(self.config['predator-kill-radius']))
@@ -25,8 +27,8 @@ class PredatorAgent(Agent):
         # desired_heading placeholder that will later be reset
         self.desired_heading = {"rotation": 0,
                                 "steps": 0}
-        # print("predvis %s: %s" % (self.unique_id, self.vision))
 
+        
     def look(self):
         neighbors = self.model.space.get_neighbors(self.pos, self.vision)
         prey_visible = []
@@ -37,39 +39,31 @@ class PredatorAgent(Agent):
                     print("see: predator %s (%.2f, %.2f) sees prey at %s"
                           % (self.unique_id, self.pos[0], self.pos[1],
                              neighbor.pos))
-        if prey_visible: # run only if there are items in the list
-            distances_to_prey = {}
-            for prey in prey_visible:
-                print("prey_pos: (%.2f, %.2f) for predator %s"
-                      % (prey.pos[0], prey.pos[1], self.unique_id))
-                heading = self.model.space.get_heading(self.pos, prey.pos)
-                if not self.params['verbose']:
-                    print(heading)
-                # FIXME: if 2+ prey are in the same position,
-                # the first ones we check get overwritten.
-            if self.params['verbose']:
-                print("distances_to_prey %s" % distances_to_prey)
-                print("predvis %s: %s currently visible"
-                      % (self.unique_id, len(prey_visible)))
-    
+        return(prey_visible)
+                
     def move_idle(self):
         """Do a random walk or initiate a chase after
         any prey you notice"""
-        if self.desired_heading["steps"] == 0:
+        if self.desired_heading["steps"] <= 0:
+            # it IS possible for it to be under 0, so this should
+            # serve as a catch-all
             rotation = self.random.random() * 2 * math.pi
-            steps_away = self.random.randint(0, 15)
+            steps_away = self.random.randint(1, 15)
             # TODO: make 0, 15 configurable with pred_min_steps
             # and pred_max_steps
             self.desired_heading = {"rotation": rotation,
                                     "steps": steps_away}
-        # then do everything you need to
         current_x, current_y = self.pos
         new_x = current_x + (math.cos(self.desired_heading["rotation"]) * self.idle_speed)
         new_y = current_y + (math.sin(self.desired_heading["rotation"]) * self.idle_speed)
+        # new_x, new_y = self.check_position(new_x, new_y)
         self.pos = (new_x, new_y)
+        self.model.space.move_agent(self, (new_x, new_y))
+        # this should take care of the issue with the torus
         self.desired_heading["steps"] -= 1
         # print("Predator %s moves" % (self.unique_id))
 
+        
     def chase_prey(self, target):
         """After noticing a prey, chase it down. 
         Possible outcomes include: 
@@ -80,39 +74,50 @@ class PredatorAgent(Agent):
         Difference between prey initiated chase and predator initiated
         is that prey gets a full (or maybe percentage) movement before
         alerting predator"""
-        if self.params['verbose']:
-            print("chase: predator %s is chasing prey %s"
-                  % (self.unique_id, target.unique_id))
-        dx = abs(self.pos[0] - target.pos[0]) # get distances
-        dy = abs(self.pos[1] - target.pos[1])
-        dx = min(dx, self.width - dx) # adjust for toroidal space to
-        dy = min(dy, self.height - dy)# avoid weird overflows 
+        dx, dy = self.model.space.get_heading(self.pos, target.pos)
         dt = math.sqrt(dx**2 + dy**2)
-        heading = math.atan(dx / dy)
+        rotation = math.atan(dx / dy)
+        # REVEIW: is my trig correct?
         if dt <= self.run_speed:
-            self.pos = new_x, new_y
+            self.model.space.move_agent(self, target.pos)
             self.attack_prey(target)
             if self.params['verbose']:
-                print("change: it didn't do the thing I'm examining")
+                print("chase: predator %s caught up with prey %s and is attacking" % (self.unique_id, target.unique_id))
         else:
-            change_x = self.run_speed * math.sin(heading)
-            change_y = self.run_speed * math.cos(heading)
-            if self.params['verbose']:
-                print("change: %s, %s" % (change_x, change_y))
-                print("change: from (%.2f, %.2f)..." % (self.pos[0], self.pos[1]))
-            self.pos = (self.pos[0] + change_x, self.pos[1] + change_y)
-            print("change: to (%.2f, %.2f)" % (self.pos[0], self.pos[1]))
+            new_x = self.pos[0] + (self.run_speed * math.sin(rotation))
+            new_y = self.pos[1] + (self.run_speed * math.cos(rotation))
+            self.model.space.move_agent(self, (new_x, new_y))
+
             
-        if self.params['verbose']:
-            print('chase: predator %s moves to (%.2f, %.2f) in pursuit of prey %s'
-                  % (self.unique_id, self.pos[0], self.pos[1], target.unique_id))
-         
     def attack_prey(self, target):
         if self.params['verbose']:
             print("attack: Predator %s (%.2f, %.2f) attacks prey at (%.2f, %.2f)"
                   % (self.unique_id, self.pos[0], self.pos[1],
                      target.pos[0], target.pos[1]))
-       
+
+            
     def step(self):
-        self.move_idle()
-        self.look()
+        prey_visible = self.look()
+        if self.current_stamina <= 0:
+            self.wait_timer = 10
+            # TODO: make this configurable
+            self.current_stamina = self.stamina
+            
+        if self.wait_timer > 0:
+            self.wait_timer -= 1
+        else:
+            if len(prey_visible) > 0:
+                distances_to_prey = {}
+                for prey in prey_visible:
+                    dt = self.model.space.get_distance(self.pos, prey.pos)
+                    distances_to_prey[prey] = dt
+                print(list(distances_to_prey.items())[0])
+                target = max(distances_to_prey.items(), key=lambda x : x[1])[0]
+                
+                # target = max(list(distances_to_prey.items()))
+                # chase the closest target
+                self.chase_prey(target)
+                self.current_stamina -= self.run_speed
+            else:
+                self.move_idle()
+        

@@ -19,9 +19,9 @@ class HerdModel(Model):
         self.config = config
         self.params = params
         self.prey_data = prey_data
-        self.random.seed(78371649) # this should keep prey constant, but NOT placement code
-        # I HATE IT. TODO: Fix literally all of this garbage
-
+        if self.config['seed'] != None:
+            self.random.seed(self.config['seed'])
+        
         self.num_predator = self.config['predator-number']
         self.num_prey = len(self.prey_data)
         self.width = self.config['width']
