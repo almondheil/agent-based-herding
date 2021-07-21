@@ -27,6 +27,7 @@ class PredatorAgent(Agent):
         # desired_heading placeholder that will later be reset
         self.desired_heading = {"rotation": 0,
                                 "steps": 0}
+        self.alive = True
 
         
     def look(self):
@@ -34,11 +35,12 @@ class PredatorAgent(Agent):
         prey_visible = []
         for neighbor in neighbors:
             if str(type(neighbor))[-11:-2] == "PreyAgent":
-                prey_visible.append(neighbor)
-                if self.params['verbose']:
-                    print("see: predator %s (%.2f, %.2f) sees prey at %s"
-                          % (self.unique_id, self.pos[0], self.pos[1],
-                             neighbor.pos))
+                if neighbor.alive:
+                    prey_visible.append(neighbor)
+                    if self.params['verbose']:
+                        print("see: predator %s (%.2f, %.2f) sees prey at %s"
+                              % (self.unique_id, self.pos[0], self.pos[1],
+                                 neighbor.pos))
         return(prey_visible)
                 
     def move_idle(self):
@@ -96,6 +98,14 @@ class PredatorAgent(Agent):
             print("attack: Predator %s (%.2f, %.2f) attacks prey at (%.2f, %.2f)"
                   % (self.unique_id, self.pos[0], self.pos[1],
                      target.pos[0], target.pos[1]))
+        
+        chance = self.random.random()
+        if chance <= 0.75:
+            target.alive = False
+            self.wait_timer = 20
+            print("prey %s successfully removed" % (target.unique_id)) # is this what b
+        else:
+            self.wait_timer = 5 # will this work?
 
             
     def step(self):

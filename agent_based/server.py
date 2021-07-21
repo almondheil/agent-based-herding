@@ -15,6 +15,7 @@ limitations under the License.
 '''
 
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.modules import ChartModule
 
 from agent_based.herd_model import HerdModel
 from agent_based.SimpleContinuousModule import SimpleCanvas
@@ -26,6 +27,7 @@ def draw_agent(agent):
                  "Filled": "true"}
     if str(type(agent))[-11:-2] == "PreyAgent":
         portrayal["Color"] = "MidnightBlue"
+        
     else:
         portrayal["Color"] = "MediumVioletRed"
         portrayal["r"] = 3
@@ -33,13 +35,17 @@ def draw_agent(agent):
 
 herd_canvas = SimpleCanvas(draw_agent, 500, 500)
 
+chart = ChartModule([{"Label": "Alive",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
 def launch_server(params, config, prey_data):
     model_params = {"params": params,
                     "config": config,
                     "prey_data": prey_data}
     
     server = ModularServer(HerdModel,
-                           [herd_canvas],
+                           [herd_canvas, chart],
                            "Herding Model",
                            model_params)
     server.launch()

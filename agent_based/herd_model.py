@@ -9,10 +9,20 @@ import sys
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
 
 # agents with their own files because they're complex
 from agent_based.prey import PreyAgent
 from agent_based.predator import PredatorAgent
+
+def compute_alive_prey(model):
+    agents = model.schedule.agents
+    for agent in agents:
+        if str(type(agent))[-15:-2] == "PredatorAgent":
+            agents.remove(agent)
+        elif agent.alive == False:
+            agents.remove(agent)
+    return(len(agents))
 
 class HerdModel(Model):
     def __init__(self, params, config, prey_data):
@@ -33,6 +43,8 @@ class HerdModel(Model):
         # print("MODEL prey data %s" % (self.prey_data))
         self.make_agents(self.config, self.params, self.prey_data)
         self.running = True
+        self.datacollector = DataCollector(
+            model_reporters = {"Alive": compute_alive_prey})
 
     def make_agents(self, config, params, prey_data):
         # print(self.num_predator + self.num_prey)
@@ -57,12 +69,12 @@ class HerdModel(Model):
             self.space.place_agent(a, (x, y))
             # print('PreyAgent placed at (%s, %s)' % (x, y))
             id += 1
-        # if params['verbose']: print("%i agents successfully added to model"
-        #                             % (int(self.num_predator + self.num_prey)))
-
+    
+        
     def count_agents(self):
         return len(self.schedule.agents)
 
     def step(self):
+        self.datacollector.collect(self)
         self.schedule.step()
 
