@@ -43,6 +43,9 @@ below, but may be moved elsewhere in a future update.
 ### So what do all those variables mean?
 Environmental
 * `width` and `height`: Dimensions of the field the agents are in
+* `seed`: Either None or an integer. If a seed is specified,
+it sets random number generator seeds for placement and agent-based
+modeling
 
 Herd Placement
 * `herd-number`: Number of herds to generate
