@@ -25,19 +25,36 @@ class PreyAgent(Agent):
     def look(self):
         neighbors = self.model.space.get_neighbors(self.pos, self.vision)
         # print(len(visible))
+        predators_visible = []
+        prey_visible = []
         for neighbor in neighbors:
             if str(type(neighbor))[-15:-2] == "PredatorAgent": 
-                if self.params['verbose']:
-                    print("see: prey %s (%.2f, %.2f) sees a predator at (%.2f, %.2f)"
-                          % (self.unique_id, self.pos[0], self.pos[1],
-                             neighbor.pos[0], neighbor.pos[1]))
-                self.flee_predator(neighbor)
+                predators_visible.append(neighbor)
+            if str(type(neighbor))[-11:-2] == "PreyAgent":
+                prey_visible.append(neighbor)
+        return(predators_visible, prey_visible)
 
-    def flee_predator(self, predator):
+    def flee_predator(self, predator, originator):
+        dx, dy = self.model.space.get_heading(originator.pos, predator.pos)
+        
+        angle = math.atan(dx / dy) # but if it's a nan, should I just randomize it? or maybe something else
+        print("positions (%.2f, %.2f) and (%.2f, %.2f)" % (originator.pos[0], originator.pos[1], predator.pos[0], predator.pos[1]))
+        print("angle.dx: %.2f" % dx)
+        print("angle.dy: %.2f" % dy)
+        print("angle: %.2f" % angle)
+        new_x = self.pos[0] + (math.cos(angle) * self.run_speed)
+        new_y = self.pos[1] + (math.sin(angle) * self.run_speed)
+        self.model.space.move_agent(self, (new_x, new_y))
         if self.params['verbose']:
             print("chase: Prey %s (%.2f, %.2f) is fleeing predator (%.2f, %.2f)"
                   % (self.unique_id, self.pos[0], self.pos[1],
                      predator.pos[0], predator.pos[1]))
             
     def step(self):
-        self.look()
+        predators_visible, prey_visible = self.look()
+        if len(predators_visible) > 0:
+            predator = predators_visible[0]
+            # TODO: have a more sophisticated way to choose who to run from
+            for other_prey in prey_visible:
+                other_prey.flee_predator(predator, self)
+            self.flee_predator(predator, self)

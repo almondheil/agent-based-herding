@@ -79,7 +79,9 @@ class PredatorAgent(Agent):
         rotation = math.atan(dx / dy)
         # REVEIW: is my trig correct?
         if dt <= self.run_speed:
-            self.model.space.move_agent(self, target.pos)
+            new_x = self.pos[0] + (dt * math.sin(rotation) - self.kill_radius)
+            new_y = self.pos[1] + (dt * math.sin(rotation) - self.kill_radius)
+            self.model.space.move_agent(self, (new_x, new_y))
             self.attack_prey(target)
             if self.params['verbose']:
                 print("chase: predator %s caught up with prey %s and is attacking" % (self.unique_id, target.unique_id))
@@ -111,7 +113,7 @@ class PredatorAgent(Agent):
                 for prey in prey_visible:
                     dt = self.model.space.get_distance(self.pos, prey.pos)
                     distances_to_prey[prey] = dt
-                print(list(distances_to_prey.items())[0])
+                # print(list(distances_to_prey.items())[0])
                 target = max(distances_to_prey.items(), key=lambda x : x[1])[0]
                 
                 # target = max(list(distances_to_prey.items()))
