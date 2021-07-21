@@ -20,6 +20,8 @@ from mesa.visualization.modules import ChartModule
 from agent_based.herd_model import HerdModel
 from agent_based.SimpleContinuousModule import SimpleCanvas
 
+import matplotlib.pyplot as plt
+
 def draw_agent(agent):
     # print("AGENT TYPE PLEASE NOTICE ME %s -> %s" % (str(type(agent)), str(type(agent))[-11:-2]))
     portrayal = {"Shape": "circle",
@@ -48,5 +50,16 @@ def launch_server(params, config, prey_data):
                            [herd_canvas, chart],
                            "Herding Model",
                            model_params)
-    server.launch()
+    if config['total-steps'] > 0:
+        model = HerdModel(**model_params)
+        print("Simulating %i steps of the model."
+              % config['total-steps'])
+        for i in range(int(config['total-steps'])):
+            model.step()
+        alive = model.datacollector.get_model_vars_dataframe()
+        alive.plot()
+        plt.show()
+    else:
+        print("Starting interactive server of the model.")
+        server.launch()
 

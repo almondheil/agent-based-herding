@@ -40,11 +40,12 @@ class PreyAgent(Agent):
         dx, dy = self.model.space.get_heading(originator.pos, predator.pos)
         
         angle = math.atan(dx / dy) # but if it's a nan, should I just randomize it? or maybe something else
-        print("positions (%.2f, %.2f) and (%.2f, %.2f)"
-              % (originator.pos[0], originator.pos[1], predator.pos[0], predator.pos[1]))
-        print("angle.dx: %.2f" % dx)
-        print("angle.dy: %.2f" % dy)
-        print("angle: %.2f" % angle)
+        
+        # print("positions (%.2f, %.2f) and (%.2f, %.2f)"
+        #       % (originator.pos[0], originator.pos[1], predator.pos[0], predator.pos[1]))
+        # print("angle.dx: %.2f" % dx)
+        # print("angle.dy: %.2f" % dy)
+        # print("angle: %.2f" % angle)
         new_x = self.pos[0] + (math.cos(angle) * self.run_speed)
         new_y = self.pos[1] + (math.sin(angle) * self.run_speed)
         self.model.space.move_agent(self, (new_x, new_y))

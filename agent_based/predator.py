@@ -103,7 +103,7 @@ class PredatorAgent(Agent):
         if chance <= 0.75:
             target.alive = False
             self.wait_timer = 20
-            print("prey %s successfully removed" % (target.unique_id)) # is this what b
+            # print("prey %s successfully removed" % (target.unique_id)) # is this what b
         else:
             self.wait_timer = 5 # will this work?
 
