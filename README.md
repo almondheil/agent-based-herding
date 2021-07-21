@@ -46,6 +46,9 @@ Environmental
 * `seed`: Either None or an integer. If a seed is specified,
 it sets random number generator seeds for placement and agent-based
 modeling
+* `total-steps`: Either set to -1 or a nonzero integer. If set to -1
+creates an interactive visualization of the model, if set to an
+integer simply runs the model with no visuals.
 
 Herd Placement
 * `herd-number`: Number of herds to generate
