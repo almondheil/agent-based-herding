@@ -69,7 +69,7 @@ are pursuing a prey
 * `predator-idle-speed`: Speed that predators move before
 noticing any prey
 * `predator-stamina`: The maximum distance that a predator
-can run at its top speed
+can run at its top speed. Currently nonfunctional.
 * `predator-kill-radius`: The distance a predator must be
 from its prey before it can attempt to kill it
 * `predator-vision`: The radius a predator can see in
@@ -78,9 +78,10 @@ Prey Attributes
 * `prey-run-speed`: The speed prey run at when they
 notice a predator
 * `prey-stamina`: How far prey can run at their top
-speed before stopping
+speed before stopping. Currently nonfunctional.
 * `prey-escape-distance`: The distance at which
-a prey has successfully escaped an encounter with a predator
+a prey has successfully escaped an encounter with a predator.
+Currently nonfunctional.
 * `prey-vision`: The radius a prey looks for predators, as
 well as other fleeing prey
 
