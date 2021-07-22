@@ -24,6 +24,7 @@ class PredatorAgent(Agent):
         self.vision = self.random.gauss(
             self.config['predator-vision'],
             math.sqrt(self.config['predator-vision']))
+        self.sensing_stdev = self.config['predator-sensing-stdev']
         # desired_heading placeholder that will later be reset
         self.desired_heading = {"rotation": 0,
                                 "steps": 0}
@@ -78,18 +79,19 @@ class PredatorAgent(Agent):
         alerting predator"""
         dx, dy = self.model.space.get_heading(self.pos, target.pos)
         dt = math.sqrt(dx**2 + dy**2)
-        rotation = math.atan(dx / dy)
+        rotation_to_neighbor = math.atan(dx / dy)
+        self_rotation = self.random.gauss(0, self.sensing_stdev)
         # REVEIW: is my trig correct?
         if dt <= self.run_speed:
-            new_x = self.pos[0] + (dt * math.sin(rotation) - self.kill_radius)
-            new_y = self.pos[1] + (dt * math.sin(rotation) - self.kill_radius)
+            new_x = self.pos[0] + (dt * math.sin(self_rotation) - self.kill_radius)
+            new_y = self.pos[1] + (dt * math.sin(self_rotation) - self.kill_radius)
             self.model.space.move_agent(self, (new_x, new_y))
             self.attack_prey(target)
             if self.params['verbose']:
                 print("chase: predator %s caught up with prey %s and is attacking" % (self.unique_id, target.unique_id))
         else:
-            new_x = self.pos[0] + (self.run_speed * math.sin(rotation))
-            new_y = self.pos[1] + (self.run_speed * math.cos(rotation))
+            new_x = self.pos[0] + (self.run_speed * math.sin(self_rotation))
+            new_y = self.pos[1] + (self.run_speed * math.cos(self_rotation))
             self.model.space.move_agent(self, (new_x, new_y))
 
             

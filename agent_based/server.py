@@ -47,7 +47,7 @@ def launch_server(params, config, prey_data):
                     "prey_data": prey_data}
     
     server = ModularServer(HerdModel,
-                           [herd_canvas, chart],
+                           [herd_canvas],
                            "Herding Model",
                            model_params)
     if config['total-steps'] > 0:
@@ -56,9 +56,20 @@ def launch_server(params, config, prey_data):
               % config['total-steps'])
         for i in range(int(config['total-steps'])):
             model.step()
+            
+        seed = int(config['seed'])
+        if config['herd-lone-prey-chance'] == 1:
+            mode = "solo"
+        else:
+            mode = "herd"
+            
         alive = model.datacollector.get_model_vars_dataframe()
-        alive.plot()
-        plt.show()
+        alive.to_csv(path_or_buf= f"./Output/{mode}_{seed}.csv", 
+                     sep=',',
+                     index=False,
+                     header=[f"{mode} prey"])
+        # alive.plot()
+        # plt.show()
     else:
         print("Starting interactive server of the model.")
         server.launch()
