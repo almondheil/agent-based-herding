@@ -8,7 +8,7 @@ Before you start, make sure you have all the required Python
 packages installed with pip:
 
 ```
-pip install mesa pandas scipy
+pip install mesa pandas scipy matplotlib
 ```
 
 Then, simply clone the github repository with
