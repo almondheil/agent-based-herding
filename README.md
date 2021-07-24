@@ -1,5 +1,5 @@
 # agent-based-herding 
-Ray Heil's project for the 2021 Institute for Computing 
+Ray Heil's project for the 2021 Institute for Computing
 in Research. Licensed under the GNU General Public License
 3.0.
 
