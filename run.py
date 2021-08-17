@@ -1,7 +1,7 @@
 #! usr/bin/env python3
 
 '''
-    $NAME: Agent-based Monte Carlo modeling of herding dynamics.
+    agent-based-herding: Agent-based Monte Carlo modeling of herding dynamics.
     Copyright (C) 2021 Raymond Heil
 
     This program is free software: you can redistribute it and/or modify
