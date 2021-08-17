@@ -4,23 +4,12 @@ in Research. Licensed under the GNU General Public License
 3.0.
 
 ## Installation and running
-Before you start, make sure you have all the required Python 
-packages installed with pip:
+Install the required packages with pip, then clone the repository
+run the run.py file!
 
 ```
-pip install mesa pandas scipy matplotlib
-```
-
-Then, simply clone the github repository with
-
-```
+pip3 install mesa pandas scipy matplotlib
 git clone https://github.com/raymondheil/agent-based-herding.git
-```
-
-Finally, cd into the cloned repository and attempt to run the main
-file:
-
-```
 cd agent-based-herding && python3 run.py
 ```
 
