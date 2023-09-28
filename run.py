@@ -2,7 +2,7 @@
 
 '''
     agent-based-herding: Agent-based Monte Carlo modeling of herding dynamics.
-    Copyright (C) 2021 Raymond Heil
+    Copyright (C) 2023 almond heil
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

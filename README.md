@@ -1,5 +1,5 @@
-# agent-based-herding 
-Ray Heil's project for the 2021 Institute for Computing
+# agent-based-herding
+almond heil's project for the 2021 Institute for Computing
 in Research. Licensed under the GNU General Public License
 3.0.
 
@@ -83,4 +83,3 @@ well as other fleeing prey
 * Checking and cross-checking of config values to ensure they make
 sense and do not contradict each other Configuration settings for
 other aspects of the simulation Movement forces
-
